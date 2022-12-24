@@ -2,14 +2,21 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+
+	"github.com/harsh3341/3rd-Semester-Mini-Project/bot"
+	"github.com/harsh3341/3rd-Semester-Mini-Project/config"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Hello, World!")
-	})
+	err := config.ReadConfig()
 
-	fmt.Println("Server is running on port 3000")
-	http.ListenAndServe(":3000", nil)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	bot.Start()
+
+	<-make(chan struct{})
+	return
 }
