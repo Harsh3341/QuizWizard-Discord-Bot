@@ -7,49 +7,17 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/harsh3341/3rd-Semester-Mini-Project/api"
 	"github.com/harsh3341/3rd-Semester-Mini-Project/config"
 )
 
 var (
 	BotID           string
 	goBot           *discordgo.Session
-	TriviaList      []Trivia // list of trivia questions
-	totalQuestion   int      // number of questions to ask
+	totalQuestion   int // number of questions to ask
 	currentQuestion int
 	score           int
 )
-
-func init() {
-	// just some random questions(no offense)
-	TriviaList = []Trivia{
-		{
-			Question: "Who is the Siyar of B2",
-			Answer:   "Kushal",
-		},
-		{
-			Question: "Who is the queen of B2",
-			Answer:   "Harsh Sahu",
-		},
-		{
-			Question: "Who is the Captain of B2",
-			Answer:   "Divyansh",
-		},
-		{
-			Question: "Who is the Siyar 2.O of B2",
-			Answer:   "Hemendra",
-		},
-		{
-			Question: "Where do we study",
-			Answer:   "SSTC",
-		},
-	}
-}
-
-// Trivia represents a single trivia question.
-type Trivia struct {
-	Question string
-	Answer   string
-}
 
 func Start() {
 	goBot, err := discordgo.New("Bot " + config.Token)
@@ -77,6 +45,7 @@ func Start() {
 	}
 
 	fmt.Println("Bot is running...")
+
 }
 
 func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -91,10 +60,6 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	args := strings.Split(m.Content, " ")
 
-	// if m.Content == config.BotPrefix+"ping" {
-	// 	_, _ = s.ChannelMessageSend(m.ChannelID, "pong")
-	// }
-
 	switch args[0] {
 	case config.BotPrefix + "start":
 		if len(args) != 2 {
@@ -108,8 +73,8 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		if numQuestions < 1 || numQuestions > len(TriviaList) {
-			s.ChannelMessageSend(m.ChannelID, "Error: Number of questions must be between 1 and "+strconv.Itoa(len(TriviaList)))
+		if numQuestions < 1 || numQuestions > len(api.TriviaList) {
+			s.ChannelMessageSend(m.ChannelID, "Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.TriviaList)))
 			return
 		}
 
@@ -143,24 +108,24 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions int) {
 
-	rand.Shuffle(len(TriviaList), func(i, j int) {
-		TriviaList[i], TriviaList[j] = TriviaList[j], TriviaList[i]
+	rand.Shuffle(len(api.TriviaList), func(i, j int) {
+		api.TriviaList[i], api.TriviaList[j] = api.TriviaList[j], api.TriviaList[i]
 	})
 
 	currentQuestion = 0
 	score = 0
 	totalQuestion = numQuestions
 
-	s.ChannelMessageSend(m.ChannelID, TriviaList[currentQuestion].Question)
+	s.ChannelMessageSend(m.ChannelID, "```"+api.TriviaList[currentQuestion].Question+"```")
 }
 
 func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
-	if answer == strings.ToLower(TriviaList[currentQuestion].Answer) {
+	if answer == strings.ToLower(api.TriviaList[currentQuestion].Answer) {
 		score++
 
 		s.ChannelMessageSend(m.ChannelID, "Correct! Your score is "+strconv.Itoa(score))
 	} else {
-		s.ChannelMessageSend(m.ChannelID, "Incorrect! Your score is "+strconv.Itoa(score))
+		s.ChannelMessageSend(m.ChannelID, "Incorrect!, Correct answer is "+api.TriviaList[currentQuestion].Answer+"\n Your score is "+strconv.Itoa(score))
 	}
 
 	currentQuestion++
@@ -170,6 +135,6 @@ func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer strin
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, TriviaList[currentQuestion].Question)
+	s.ChannelMessageSend(m.ChannelID, api.TriviaList[currentQuestion].Question)
 
 }
