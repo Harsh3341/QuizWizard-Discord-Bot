@@ -63,36 +63,37 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	switch args[0] {
 	case config.BotPrefix + "start":
 		if len(args) != 2 {
-			s.ChannelMessageSend(m.ChannelID, "Usage: !start [number of questions]")
+			s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions]```")
 			return
 		}
 
 		numQuestions, err := strconv.Atoi(args[1]) // convert string to int
 		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, "Error: Invalid number of questions")
+			s.ChannelMessageSend(m.ChannelID, "```Error: Invalid number of questions```")
 			return
 		}
 
-		if numQuestions < 1 || numQuestions > len(api.TriviaList) {
-			s.ChannelMessageSend(m.ChannelID, "Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.TriviaList)))
+		if numQuestions < 1 || numQuestions > 50 {
+			s.ChannelMessageSend(m.ChannelID, "```Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.TriviaList))+"```")
 			return
 		}
-
+		api.FetchTrivia(numQuestions)
 		startTrivia(s, m, numQuestions)
 	case config.BotPrefix + "answer":
-		if len(args) != 2 {
-			s.ChannelMessageSend(m.ChannelID, "Usage: !answer [answer]")
+		if len(args) < 2 {
+			s.ChannelMessageSend(m.ChannelID, "```Usage: !answer [answer]```")
 			return
 		}
-		answerTrivia(s, m, args[1])
+
+		answerTrivia(s, m, strings.Join(args[1:], " "))
 	case config.BotPrefix + "help":
-		s.ChannelMessageSend(m.ChannelID, "Usage: !start [number of questions], !answer [answer], !help")
+		s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions], !answer [answer], !help```")
 
 	case config.BotPrefix + "ping":
-		s.ChannelMessageSend(m.ChannelID, "No worries, I'm Alive!")
+		s.ChannelMessageSend(m.ChannelID, "```No worries, I'm Alive!```")
 
 	case config.BotPrefix + "clear":
-		s.ChannelMessageSend(m.ChannelID, "Clearing the chat")
+		s.ChannelMessageSend(m.ChannelID, "```Clearing the chat```")
 		messages, err := s.ChannelMessages(m.ChannelID, 100, "", "", "")
 		if err != nil {
 			fmt.Println(err)
@@ -116,25 +117,25 @@ func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions 
 	score = 0
 	totalQuestion = numQuestions
 
-	s.ChannelMessageSend(m.ChannelID, "```"+api.TriviaList[currentQuestion].Question+"```")
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, ", ")+"```")
 }
 
 func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
 	if answer == strings.ToLower(api.TriviaList[currentQuestion].Answer) {
 		score++
 
-		s.ChannelMessageSend(m.ChannelID, "Correct! Your score is "+strconv.Itoa(score))
+		s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(score)+"```")
 	} else {
-		s.ChannelMessageSend(m.ChannelID, "Incorrect!, Correct answer is "+api.TriviaList[currentQuestion].Answer+"\n Your score is "+strconv.Itoa(score))
+		s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.TriviaList[currentQuestion].Answer+"\n Your score is "+strconv.Itoa(score)+"```")
 	}
 
 	currentQuestion++
 
 	if currentQuestion >= totalQuestion {
-		s.ChannelMessageSend(m.ChannelID, "Trivia finished! Your score is "+strconv.Itoa(score))
+		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(score)+"```")
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, api.TriviaList[currentQuestion].Question)
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, ", ")+"```")
 
 }

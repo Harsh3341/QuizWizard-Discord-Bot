@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/harsh3341/3rd-Semester-Mini-Project/api"
 	"github.com/harsh3341/3rd-Semester-Mini-Project/bot"
 	"github.com/harsh3341/3rd-Semester-Mini-Project/config"
 )
@@ -15,8 +14,6 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-
-	api.FetchTrivia()
 
 	bot.Start()
 
