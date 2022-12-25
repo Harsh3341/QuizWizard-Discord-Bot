@@ -1,16 +1,17 @@
 package bot
 
 import (
-	"fmt"
-	"math/rand"
-	"strconv"
-	"strings"
+	"fmt"       // for printing
+	"math/rand" // for shuffling options
+	"strconv"   // for converting int to string
+	"strings"   // for splitting strings
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/harsh3341/3rd-Semester-Mini-Project/api"
-	"github.com/harsh3341/3rd-Semester-Mini-Project/config"
+	"github.com/bwmarrin/discordgo"                         // for Discord bot
+	"github.com/harsh3341/3rd-Semester-Mini-Project/api"    // for trivia questions
+	"github.com/harsh3341/3rd-Semester-Mini-Project/config" // for bot token and prefix
 )
 
+// BotID is the ID of the bot.
 var (
 	BotID           string
 	goBot           *discordgo.Session
@@ -19,7 +20,10 @@ var (
 	score           int
 )
 
+// starts the trivia game.
 func Start() {
+
+	// create a new Discord session using the provided bot token.
 	goBot, err := discordgo.New("Bot " + config.Token)
 
 	if err != nil {
@@ -27,6 +31,7 @@ func Start() {
 		return
 	}
 
+	// get the account information for the bot.
 	u, err := goBot.User("@me")
 
 	if err != nil {
@@ -35,8 +40,10 @@ func Start() {
 
 	BotID = u.ID
 
+	// add a handler for messages.
 	goBot.AddHandler(messageHandler)
 
+	// open a websocket connection to Discord and begin listening.
 	err = goBot.Open()
 
 	if err != nil {
@@ -48,7 +55,9 @@ func Start() {
 
 }
 
+// messageHandler handles messages sent to the bot.
 func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// ignore messages sent by the bot itself
 	if m.Author.ID == BotID {
 		return
 	}
@@ -58,8 +67,10 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	// split message into command and arguments
 	args := strings.Split(m.Content, " ")
 
+	// handle commands
 	switch args[0] {
 	case config.BotPrefix + "start":
 		if len(args) != 2 {
@@ -85,7 +96,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		answerTrivia(s, m, strings.Join(args[1:], " "))
+		answerTrivia(s, m, strings.Join(args[1:], " ")) // join the arguments to get the answer
 	case config.BotPrefix + "help":
 		s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions], !answer [answer], !help```")
 
@@ -107,8 +118,10 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+// startTrivia starts the trivia game.
 func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions int) {
 
+	// shuffle the questions
 	rand.Shuffle(len(api.TriviaList), func(i, j int) {
 		api.TriviaList[i], api.TriviaList[j] = api.TriviaList[j], api.TriviaList[i]
 	})
@@ -117,10 +130,14 @@ func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions 
 	score = 0
 	totalQuestion = numQuestions
 
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, ", ")+"```")
+	// send the first question
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, "\n")+"```")
 }
 
+// answerTrivia checks if the answer is correct.
 func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
+
+	// check if the answer is correct
 	if answer == strings.ToLower(api.TriviaList[currentQuestion].Answer) {
 		score++
 
@@ -131,6 +148,7 @@ func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer strin
 
 	currentQuestion++
 
+	// check if the trivia is finished
 	if currentQuestion >= totalQuestion {
 		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(score)+"```")
 		return

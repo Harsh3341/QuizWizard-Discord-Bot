@@ -1,13 +1,13 @@
 package api
 
 import (
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"net/http"
-	"strconv"
+	"encoding/base64" // for decoding base64 strings
+	"encoding/json"   // for decoding JSON
+	"fmt"             // for printing
+	"io/ioutil"       // for reading response body
+	"math/rand"       // for shuffling options
+	"net/http"        // for making HTTP requests
+	"strconv"         // for converting int to string
 )
 
 // Trivia represents a single trivia question.
@@ -26,14 +26,17 @@ var TriviaList []Trivia
 
 // fetchTrivia fetches trivia questions from the Open Trivia Database API.
 func FetchTrivia(num int) {
+	// make HTTP request to API
 	url := "https://opentdb.com/api.php?amount=" + strconv.Itoa(num) + "&encode=base64"
 
+	// get response body from API
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() // close response body when function returns
 
+	// read response body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -52,6 +55,7 @@ func FetchTrivia(num int) {
 		fmt.Println("Error: Response code is not 0")
 	}
 
+	// decode JSON
 	var data struct {
 		Results []struct {
 			Category          string
@@ -66,6 +70,7 @@ func FetchTrivia(num int) {
 		fmt.Println(err.Error())
 	}
 
+	// decode base64 strings and add to TriviaList
 	for _, result := range data.Results {
 		question, err := base64.StdEncoding.DecodeString(result.Question)
 		if err != nil {
@@ -91,6 +96,7 @@ func FetchTrivia(num int) {
 			fmt.Println(err.Error())
 		}
 
+		// decode incorrect answers
 		var incorrect_answers []string
 		for _, incorrect_answer := range result.Incorrect_Answers {
 			incorrect_answer, err := base64.StdEncoding.DecodeString(incorrect_answer)
@@ -100,6 +106,7 @@ func FetchTrivia(num int) {
 			incorrect_answers = append(incorrect_answers, string(incorrect_answer))
 		}
 
+		// add correct answer to options
 		options := append(incorrect_answers, string(answer))
 		// shuffle options
 		for i := range options {
@@ -119,7 +126,5 @@ func FetchTrivia(num int) {
 		})
 
 	}
-
-	fmt.Println("TriviaList: ", TriviaList)
 
 }

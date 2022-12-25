@@ -8,6 +8,8 @@ import (
 )
 
 func main() {
+
+	// read the config file
 	err := config.ReadConfig()
 
 	if err != nil {
@@ -15,8 +17,10 @@ func main() {
 		return
 	}
 
+	// start the bot
 	bot.Start()
 
+	// wait for the bot to exit
 	<-make(chan struct{})
 	return
 }
