@@ -123,6 +123,21 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case config.BotPrefix + "help":
 		s.ChannelMessageSend(m.ChannelID, "Usage: !start [number of questions], !answer [answer], !help")
 
+	case config.BotPrefix + "ping":
+		s.ChannelMessageSend(m.ChannelID, "No worries, I'm Alive!")
+
+	case config.BotPrefix + "clear":
+		s.ChannelMessageSend(m.ChannelID, "Clearing the chat")
+		messages, err := s.ChannelMessages(m.ChannelID, 100, "", "", "")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		for _, message := range messages {
+			s.ChannelMessageDelete(m.ChannelID, message.ID)
+		}
+
 	}
 }
 
