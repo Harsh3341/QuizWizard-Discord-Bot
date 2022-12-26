@@ -114,6 +114,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		for _, message := range messages {
 			s.ChannelMessageDelete(m.ChannelID, message.ID)
 		}
+		s.ChannelMessageSend(m.ChannelID, "```Chat Cleared```")
 
 	}
 }
@@ -138,7 +139,7 @@ func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions 
 func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
 
 	// check if the answer is correct
-	if answer == strings.ToLower(api.TriviaList[currentQuestion].Answer) {
+	if strings.ToLower(answer) == strings.ToLower(api.TriviaList[currentQuestion].Answer) {
 		score++
 
 		s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(score)+"```")
@@ -154,6 +155,6 @@ func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer strin
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, ", ")+"```")
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, "\n")+"```")
 
 }
