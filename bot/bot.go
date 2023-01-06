@@ -73,8 +73,8 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// handle commands
 	switch args[0] {
 	case config.BotPrefix + "start":
-		if len(args) != 2 {
-			s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions]```")
+		if len(args) != 3 {
+			s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions] [Difficulty]```")
 			return
 		}
 
@@ -84,11 +84,13 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
+		difficulty := args[2]
+
 		if numQuestions < 1 || numQuestions > 50 {
 			s.ChannelMessageSend(m.ChannelID, "```Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.TriviaList))+"```")
 			return
 		}
-		api.FetchTrivia(numQuestions)
+		api.FetchTrivia(numQuestions, difficulty)
 		startTrivia(s, m, numQuestions)
 	case config.BotPrefix + "answer":
 		if len(args) < 2 {
@@ -101,7 +103,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions], !answer [answer], !help```")
 
 	case config.BotPrefix + "ping":
-		s.ChannelMessageSend(m.ChannelID, "```No worries, I'm Alive!```")
+		s.ChannelMessageSend(m.ChannelID, "```No worries, I'm Alive!🚀```")
 
 	case config.BotPrefix + "clear":
 		s.ChannelMessageSend(m.ChannelID, "```Clearing the chat```")
