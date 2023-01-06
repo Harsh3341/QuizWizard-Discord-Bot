@@ -25,9 +25,9 @@ type Trivia struct {
 var TriviaList []Trivia
 
 // fetchTrivia fetches trivia questions from the Open Trivia Database API.
-func FetchTrivia(num int) {
+func FetchTrivia(num int, difficulty string) {
 	// make HTTP request to API
-	url := "https://opentdb.com/api.php?amount=" + strconv.Itoa(num) + "&encode=base64"
+	url := "https://opentdb.com/api.php?amount=" + strconv.Itoa(num) + "&difficulty=" + difficulty + "&encode=base64"
 
 	// get response body from API
 	resp, err := http.Get(url)
