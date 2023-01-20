@@ -50,6 +50,7 @@ func Start() {
 		fmt.Println(err.Error())
 		return
 	}
+	api.FetchQuiz(1, "linux")
 
 	fmt.Println("Bot is running...")
 

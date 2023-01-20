@@ -11,6 +11,7 @@ import (
 var (
 	Token     string
 	BotPrefix string
+	APITOKEN  string
 )
 
 // ReadConfig reads the .env file and sets the bot token and prefix.
@@ -25,6 +26,7 @@ func ReadConfig() error {
 
 	Token = os.Getenv("TOKEN")
 	BotPrefix = os.Getenv("BOTPREFIX")
+	APITOKEN = os.Getenv("APITOKEN")
 
 	return nil
 
