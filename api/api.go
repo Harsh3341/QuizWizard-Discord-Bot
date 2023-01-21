@@ -7,7 +7,8 @@ import (
 	"io/ioutil"       // for reading response body
 	"math/rand"       // for shuffling options
 	"net/http"        // for making HTTP requests
-	"strconv"         // for converting int to string
+	"reflect"
+	"strconv" // for converting int to string
 
 	"github.com/harsh3341/3rd-Semester-Mini-Project/config"
 )
@@ -24,34 +25,18 @@ type Trivia struct {
 }
 
 type Quiz struct {
-	ID          int    `json:"id"`
-	Question    string `json:"question"`
-	Description string `json:"description"`
-	Answers     struct {
-		A string `json:"answer_a"`
-		B string `json:"answer_b"`
-		C string `json:"answer_c"`
-		D string `json:"answer_d"`
-		E string `json:"answer_e"`
-		F string `json:"answer_f"`
-	} `json:"answers"`
-	MultipleCorrectAnswers string `json:"multiple_correct_answers"`
-	CorrectAnswers         struct {
-		A string `json:"answer_a_correct"`
-		B string `json:"answer_b_correct"`
-		C string `json:"answer_c_correct"`
-		D string `json:"answer_d_correct"`
-		E string `json:"answer_e_correct"`
-		F string `json:"answer_f_correct"`
-	} `json:"correct_answers"`
-	CorrectAnswer string `json:"correct_answer"`
-	Explanation   string `json:"explanation"`
-	Tip           string `json:"tip"`
-	Tags          []struct {
-		Name string `json:"name"`
-	} `json:"tags"`
-	Category   string `json:"category"`
-	Difficulty string `json:"difficulty"`
+	ID                     int
+	Question               string
+	Description            string
+	Answers                []string
+	MultipleCorrectAnswers string
+	Correct_Answers        []string
+
+	CorrectAnswer string
+	Explanation   string
+	Tip           string
+	Category      string
+	Difficulty    string
 }
 
 var QuizList []Quiz
@@ -160,6 +145,8 @@ func FetchTrivia(num int, difficulty string) {
 			Options:           options,
 		})
 
+		// fmt.Println(TriviaList)
+
 	}
 
 }
@@ -173,6 +160,7 @@ func FetchQuiz(num int, category string) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
 	defer resp.Body.Close() // close response body when function returns
 
 	// read response body
@@ -181,49 +169,66 @@ func FetchQuiz(num int, category string) {
 		fmt.Println(err.Error())
 	}
 
-	// decode JSON
 	var data []struct {
-		id       int
-		question string
-		answers  struct {
-			a string
-			b string
-			c string
-			d string
-		}
-		correct_answer struct {
-			a string
-			b string
-			c string
-			d string
-		}
-		explanation string
-		tip         string
-		tags        []string
-		category    string
-		difficulty  string
+		ID          int    `json:"id"`
+		Question    string `json:"question"`
+		Description string `json:"description"`
+		Answers     struct {
+			A string `json:"answer_a"`
+			B string `json:"answer_b"`
+			C string `json:"answer_c"`
+			D string `json:"answer_d"`
+			E string `json:"answer_e"`
+			F string `json:"answer_f"`
+		} `json:"answers"`
+		MultipleCorrectAnswers string `json:"multiple_correct_answers"`
+		CorrectAnswers         struct {
+			A string `json:"answer_a_correct"`
+			B string `json:"answer_b_correct"`
+			C string `json:"answer_c_correct"`
+			D string `json:"answer_d_correct"`
+			E string `json:"answer_e_correct"`
+			F string `json:"answer_f_correct"`
+		} `json:"correct_answers"`
+
+		CorrectAnswer string `json:"correct_answer"`
+		Explanation   string `json:"explanation"`
+		Tip           string `json:"tip"`
+		Tags          []struct {
+			Name string `json:"name"`
+		} `json:"tags"`
+		Category   string `json:"category"`
+		Difficulty string `json:"difficulty"`
 	}
 
+	// decode JSON
 	if err := json.Unmarshal(body, &data); err != nil {
 		fmt.Println(err.Error())
 	}
 
-	// add question to QuizList
+	//store data values in QuizList
 	for _, result := range data {
-		for _, question := range data {
-			QuizList = append(QuizList, Quiz{
-				ID:            question.id,
-				Question:      question.question,
-				Answers:       question.answers,
-				CorrectAnswer: question.correct_answer,
-				Explanation:   question.explanation,
-				Tip:           question.tip,
-				Tags:          question.tags,
-				Category:      question.category,
-				Difficulty:    question.difficulty,
-			})
+		answers := []string{result.Answers.A, result.Answers.B, result.Answers.C, result.Answers.D, result.Answers.E, result.Answers.F}
+
+		values := reflect.ValueOf(result.CorrectAnswers)
+		correct_answer := []string{}
+		for i := 0; i < values.NumField(); i++ {
+			valueField := values.Field(i)
+			if valueField.String() == "true" {
+				correct_answer = append(correct_answer, answers[i])
+			}
 		}
 
+		QuizList = append(QuizList, Quiz{
+			ID:              result.ID,
+			Question:        result.Question,
+			Description:     result.Description,
+			Answers:         answers,
+			Correct_Answers: correct_answer,
+			Explanation:     result.Explanation,
+			Tip:             result.Tip,
+			Category:        result.Category,
+			Difficulty:      result.Difficulty,
+		})
 	}
-
 }

@@ -13,11 +13,14 @@ import (
 
 // BotID is the ID of the bot.
 var (
-	BotID           string
-	goBot           *discordgo.Session
-	totalQuestion   int // number of questions to ask
-	currentQuestion int
-	score           int
+	BotID            string
+	goBot            *discordgo.Session
+	totalQuestionT   int // number of questions to ask
+	currentQuestionT int
+	scoreT           int
+	totalQuestionQ   int // number of questions to ask
+	currentQuestionQ int
+	scoreQ           int
 )
 
 // starts the trivia game.
@@ -50,7 +53,6 @@ func Start() {
 		fmt.Println(err.Error())
 		return
 	}
-	api.FetchQuiz(1, "linux")
 
 	fmt.Println("Bot is running...")
 
@@ -73,7 +75,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// handle commands
 	switch args[0] {
-	case config.BotPrefix + "start":
+	case config.BotPrefix + "startt":
 		if len(args) != 3 {
 			s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions] [Difficulty]```")
 			return
@@ -93,13 +95,43 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		api.FetchTrivia(numQuestions, difficulty)
 		startTrivia(s, m, numQuestions)
-	case config.BotPrefix + "answer":
+	case config.BotPrefix + "startq":
+		if len(args) != 3 {
+			s.ChannelMessageSend(m.ChannelID, "```Usage: !startq [number of questions] [category]```")
+			return
+		}
+
+		numQuestions, err := strconv.Atoi(args[1]) // convert string to int
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, "```Error: Invalid number of questions```")
+			return
+		}
+
+		category := args[2]
+
+		if numQuestions < 1 || numQuestions > 20 {
+			s.ChannelMessageSend(m.ChannelID, "```Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.QuizList))+"```")
+			return
+		}
+		api.FetchQuiz(numQuestions, category)
+		startQuiz(s, m, numQuestions)
+
+	case config.BotPrefix + "answert":
 		if len(args) < 2 {
 			s.ChannelMessageSend(m.ChannelID, "```Usage: !answer [answer]```")
 			return
 		}
 
 		answerTrivia(s, m, strings.Join(args[1:], " ")) // join the arguments to get the answer
+
+	case config.BotPrefix + "answerq":
+
+		if len(args) < 2 {
+			s.ChannelMessageSend(m.ChannelID, "```Usage: !answerq [answer]```")
+			return
+		}
+
+		answerQuiz(s, m, strings.Join(args[1:], " ")) // join the arguments to get the answer
 	case config.BotPrefix + "help":
 		s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions], !answer [answer], !help```")
 
@@ -130,34 +162,78 @@ func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions 
 		api.TriviaList[i], api.TriviaList[j] = api.TriviaList[j], api.TriviaList[i]
 	})
 
-	currentQuestion = 0
-	score = 0
-	totalQuestion = numQuestions
+	currentQuestionT = 0
+	scoreT = 0
+	totalQuestionT = numQuestions
 
 	// send the first question
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, "\n")+"```")
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestionT].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestionT].Options, "\n")+"```")
+}
+
+func startQuiz(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions int) {
+
+	// shuffle the questions
+	rand.Shuffle(len(api.QuizList), func(i, j int) {
+		api.QuizList[i], api.QuizList[j] = api.QuizList[j], api.QuizList[i]
+	})
+
+	currentQuestionQ = 0
+	scoreQ = 0
+	totalQuestionQ = numQuestions
+
+	// send the first question
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\nOptions: "+strings.Join(api.QuizList[currentQuestionQ].Answers, "\n")+"```")
 }
 
 // answerTrivia checks if the answer is correct.
 func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
 
 	// check if the answer is correct
-	if strings.ToLower(answer) == strings.ToLower(api.TriviaList[currentQuestion].Answer) {
-		score++
+	if strings.ToLower(answer) == strings.ToLower(api.TriviaList[currentQuestionT].Answer) {
+		scoreT++
 
-		s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(score)+"```")
+		s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreT)+"```")
 	} else {
-		s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.TriviaList[currentQuestion].Answer+"\n Your score is "+strconv.Itoa(score)+"```")
+		s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.TriviaList[currentQuestionT].Answer+"\n Your score is "+strconv.Itoa(scoreT)+"```")
 	}
 
-	currentQuestion++
+	currentQuestionT++
 
 	// check if the trivia is finished
-	if currentQuestion >= totalQuestion {
-		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(score)+"```")
+	if currentQuestionT >= totalQuestionT {
+		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your scoreT is "+strconv.Itoa(scoreT)+"```")
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestion].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestion].Options, "\n")+"```")
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestionT].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestionT].Options, "\n")+"```")
+
+}
+
+func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
+
+	// check if the answer is correct
+
+	for i := 0; i < len(api.QuizList[currentQuestionQ].Correct_Answers); i++ {
+
+		if strings.ToLower(answer) == strings.ToLower(api.QuizList[currentQuestionQ].Correct_Answers[i]) {
+
+			scoreQ++
+			s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreQ)+"```")
+
+		} else {
+			s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.QuizList[currentQuestionQ].Correct_Answers[0]+"\n Your score is "+strconv.Itoa(scoreQ)+"```")
+		}
+	}
+
+	s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreQ)+"```")
+
+	currentQuestionQ++
+
+	if currentQuestionQ >= totalQuestionQ {
+		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your scoreT is "+strconv.Itoa(scoreQ)+"```")
+		return
+	}
+
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\nOptions: "+strings.Join(api.QuizList[currentQuestionQ].Answers, "\n")+"```")
 
 }
