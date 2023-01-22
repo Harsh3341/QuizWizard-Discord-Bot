@@ -182,7 +182,14 @@ func startQuiz(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions in
 	totalQuestionQ = numQuestions
 
 	// send the first question
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\nOptions: "+strings.Join(api.QuizList[currentQuestionQ].Answers, "\n")+"```")
+	var Options []string
+
+	for i := 0; i < len(api.QuizList[currentQuestionQ].Answers); i++ {
+		if api.QuizList[currentQuestionQ].Answers[i] != "" {
+			Options = append(Options, string('A'+i)+". "+api.QuizList[currentQuestionQ].Answers[i])
+		}
+	}
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\n"+strings.Join(Options, "\n")+"```")
 }
 
 // answerTrivia checks if the answer is correct.
@@ -201,7 +208,7 @@ func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer strin
 
 	// check if the trivia is finished
 	if currentQuestionT >= totalQuestionT {
-		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your scoreT is "+strconv.Itoa(scoreT)+"```")
+		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(scoreT)+"```")
 		return
 	}
 
@@ -225,15 +232,24 @@ func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string)
 		}
 	}
 
-	s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreQ)+"```")
-
 	currentQuestionQ++
 
 	if currentQuestionQ >= totalQuestionQ {
-		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your scoreT is "+strconv.Itoa(scoreQ)+"```")
+		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(scoreQ)+"```")
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\nOptions: "+strings.Join(api.QuizList[currentQuestionQ].Answers, "\n")+"```")
+	var Options []string
+
+	fmt.Println(len(api.QuizList[currentQuestionQ].Answers))
+
+	for i := 0; i < len(api.QuizList[currentQuestionQ].Answers); i++ {
+		//check for blank answers
+		if api.QuizList[currentQuestionQ].Answers[i] != "" {
+
+			Options = append(Options, string('A'+i)+". "+api.QuizList[currentQuestionQ].Answers[i])
+		}
+	}
+	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\n"+strings.Join(Options, "\n")+"```")
 
 }
