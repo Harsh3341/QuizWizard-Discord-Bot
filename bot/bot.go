@@ -6,6 +6,7 @@ import (
 	"strconv"   // for converting int to string
 	"strings"   // for splitting strings
 
+	embed "github.com/Clinet/discordgo-embed"
 	"github.com/bwmarrin/discordgo"                         // for Discord bot
 	"github.com/harsh3341/3rd-Semester-Mini-Project/api"    // for trivia questions
 	"github.com/harsh3341/3rd-Semester-Mini-Project/config" // for bot token and prefix
@@ -22,6 +23,8 @@ var (
 	currentQuestionQ int
 	scoreQ           int
 )
+
+var buttons = []string{":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"}
 
 // starts the trivia game.
 func Start() {
@@ -77,40 +80,40 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	switch args[0] {
 	case config.BotPrefix + "startt":
 		if len(args) != 3 {
-			s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions] [Difficulty]```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Usage: !startt [number of questions] [difficulty]```", 0xb40000))
 			return
 		}
 
 		numQuestions, err := strconv.Atoi(args[1]) // convert string to int
 		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, "```Error: Invalid number of questions```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Number of questions must be an integer```", 0xb40000))
 			return
 		}
 
 		difficulty := args[2]
 
 		if numQuestions < 1 || numQuestions > 50 {
-			s.ChannelMessageSend(m.ChannelID, "```Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.TriviaList))+"```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Number of questions must be between 1 and 50```", 0xb40000))
 			return
 		}
 		api.FetchTrivia(numQuestions, difficulty)
 		startTrivia(s, m, numQuestions)
 	case config.BotPrefix + "startq":
 		if len(args) != 3 {
-			s.ChannelMessageSend(m.ChannelID, "```Usage: !startq [number of questions] [category]```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Usage: !startq [number of questions] [category]```", 0xb40000))
 			return
 		}
 
 		numQuestions, err := strconv.Atoi(args[1]) // convert string to int
 		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, "```Error: Invalid number of questions```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Number of questions must be an integer```", 0xb40000))
 			return
 		}
 
 		category := args[2]
 
 		if numQuestions < 1 || numQuestions > 20 {
-			s.ChannelMessageSend(m.ChannelID, "```Error: Number of questions must be between 1 and "+strconv.Itoa(len(api.QuizList))+"```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Number of questions must be between 1 and 20```", 0xb40000))
 			return
 		}
 		api.FetchQuiz(numQuestions, category)
@@ -118,7 +121,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	case config.BotPrefix + "answert":
 		if len(args) < 2 {
-			s.ChannelMessageSend(m.ChannelID, "```Usage: !answer [answer]```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Usage: !answert [answer]```", 0xb40000))
 			return
 		}
 
@@ -127,19 +130,20 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case config.BotPrefix + "answerq":
 
 		if len(args) < 2 {
-			s.ChannelMessageSend(m.ChannelID, "```Usage: !answerq [answer]```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Error", "```Usage: !answerq [answer]```", 0xb40000))
 			return
 		}
 
 		answerQuiz(s, m, strings.Join(args[1:], " ")) // join the arguments to get the answer
 	case config.BotPrefix + "help":
-		s.ChannelMessageSend(m.ChannelID, "```Usage: !start [number of questions], !answer [answer], !help```")
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Help", "```Commands: \n!startt [number of questions] [difficulty] \n!startq [number of questions] [category] \n!answert [answer] \n!answerq [answer] \n!ping \n!clear```", 0x00b4b4))
 
 	case config.BotPrefix + "ping":
-		s.ChannelMessageSend(m.ChannelID, "```No worries, I'm Alive!🚀```")
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewEmbed().SetTitle("No worries, I'm Alive!🚀").SetColor(0x00ff00).MessageEmbed)
 
 	case config.BotPrefix + "clear":
-		s.ChannelMessageSend(m.ChannelID, "```Clearing the chat```")
+
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewEmbed().SetTitle("Clearing Chat...").SetColor(0x00ff00).MessageEmbed)
 		messages, err := s.ChannelMessages(m.ChannelID, 100, "", "", "")
 		if err != nil {
 			fmt.Println(err)
@@ -149,7 +153,7 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		for _, message := range messages {
 			s.ChannelMessageDelete(m.ChannelID, message.ID)
 		}
-		s.ChannelMessageSend(m.ChannelID, "```Chat Cleared```")
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewEmbed().SetTitle("Chat Cleared!").SetColor(0x00ff00).MessageEmbed)
 
 	}
 }
@@ -167,7 +171,13 @@ func startTrivia(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions 
 	totalQuestionT = numQuestions
 
 	// send the first question
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestionT].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestionT].Options, "\n")+"```")
+	var Options []string
+
+	for i := 0; i < len(api.TriviaList[currentQuestionT].Options); i++ {
+		Options = append(Options, buttons[i]+" "+api.TriviaList[currentQuestionT].Options[i])
+	}
+
+	s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Question "+strconv.Itoa(currentQuestionT+1)+"\n\n"+api.TriviaList[currentQuestionT].Question+"\n\n", strings.Join(Options, "\n"), 0x00ff00))
 }
 
 func startQuiz(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions int) {
@@ -186,10 +196,11 @@ func startQuiz(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions in
 
 	for i := 0; i < len(api.QuizList[currentQuestionQ].Answers); i++ {
 		if api.QuizList[currentQuestionQ].Answers[i] != "" {
-			Options = append(Options, string('A'+i)+". "+api.QuizList[currentQuestionQ].Answers[i])
+			Options = append(Options, buttons[i]+" "+api.QuizList[currentQuestionQ].Answers[i])
 		}
 	}
-	s.ChannelMessageSend(m.ChannelID, "```Question "+strconv.Itoa(currentQuestionQ+1)+"\n\n"+api.QuizList[currentQuestionQ].Question+"\n\n"+strings.Join(Options, "\n")+"```")
+
+	s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Question "+strconv.Itoa(currentQuestionQ+1)+"\n\n"+api.QuizList[currentQuestionQ].Question+"\n\n", strings.Join(Options, "\n"), 0x00ff00))
 }
 
 // answerTrivia checks if the answer is correct.
@@ -199,21 +210,27 @@ func answerTrivia(s *discordgo.Session, m *discordgo.MessageCreate, answer strin
 	if strings.ToLower(answer) == strings.ToLower(api.TriviaList[currentQuestionT].Answer) {
 		scoreT++
 
-		s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreT)+"```")
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Correct!", "```Your score is "+strconv.Itoa(scoreT)+"```", 0x00ff00))
 	} else {
-		s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.TriviaList[currentQuestionT].Answer+"\n Your score is "+strconv.Itoa(scoreT)+"```")
+
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Incorrect!", "```Correct answer is "+api.TriviaList[currentQuestionT].Answer+"\nYour score is "+strconv.Itoa(scoreT)+"```", 0xb40000))
 	}
 
 	currentQuestionT++
 
 	// check if the trivia is finished
 	if currentQuestionT >= totalQuestionT {
-		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(scoreT)+"```")
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Trivia Finished!", "```Your score is "+strconv.Itoa(scoreT)+"```", 0x00ff00))
 		return
 	}
 
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.TriviaList[currentQuestionT].Question+"\nOptions: "+strings.Join(api.TriviaList[currentQuestionT].Options, "\n")+"```")
+	var Options []string
 
+	for i := 0; i < len(api.TriviaList[currentQuestionT].Options); i++ {
+		Options = append(Options, buttons[i]+" "+api.TriviaList[currentQuestionT].Options[i])
+	}
+
+	s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Question "+strconv.Itoa(currentQuestionT+1)+"\n\n"+api.TriviaList[currentQuestionT].Question+"\n\n", strings.Join(Options, "\n"), 0x00ff00))
 }
 
 func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string) {
@@ -228,14 +245,14 @@ func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string)
 			s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreQ)+"```")
 
 		} else {
-			s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.QuizList[currentQuestionQ].Correct_Answers[0]+"\n Your score is "+strconv.Itoa(scoreQ)+"```")
+			s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.QuizList[currentQuestionQ].Correct_Answers[0]+"\nYour score is "+strconv.Itoa(scoreQ)+"```")
 		}
 	}
 
 	currentQuestionQ++
 
 	if currentQuestionQ >= totalQuestionQ {
-		s.ChannelMessageSend(m.ChannelID, "```Trivia finished! Your score is "+strconv.Itoa(scoreQ)+"```")
+		s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Quiz Finished!", "```Your score is "+strconv.Itoa(scoreQ)+"```", 0x00ff00))
 		return
 	}
 
@@ -244,12 +261,11 @@ func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string)
 	fmt.Println(len(api.QuizList[currentQuestionQ].Answers))
 
 	for i := 0; i < len(api.QuizList[currentQuestionQ].Answers); i++ {
-		//check for blank answers
 		if api.QuizList[currentQuestionQ].Answers[i] != "" {
-
-			Options = append(Options, string('A'+i)+". "+api.QuizList[currentQuestionQ].Answers[i])
+			Options = append(Options, buttons[i]+" "+api.QuizList[currentQuestionQ].Answers[i])
 		}
 	}
-	s.ChannelMessageSend(m.ChannelID, "```Question "+strconv.Itoa(currentQuestionQ+1)+"\n\n"+api.QuizList[currentQuestionQ].Question+"\n\n"+strings.Join(Options, "\n")+"```")
+
+	s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Question "+strconv.Itoa(currentQuestionQ+1)+"\n\n"+api.QuizList[currentQuestionQ].Question+"\n\n", strings.Join(Options, "\n"), 0x00ff00))
 
 }
