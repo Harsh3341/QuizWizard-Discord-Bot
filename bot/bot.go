@@ -189,7 +189,7 @@ func startQuiz(s *discordgo.Session, m *discordgo.MessageCreate, numQuestions in
 			Options = append(Options, string('A'+i)+". "+api.QuizList[currentQuestionQ].Answers[i])
 		}
 	}
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\n"+strings.Join(Options, "\n")+"```")
+	s.ChannelMessageSend(m.ChannelID, "```Question "+strconv.Itoa(currentQuestionQ+1)+"\n\n"+api.QuizList[currentQuestionQ].Question+"\n\n"+strings.Join(Options, "\n")+"```")
 }
 
 // answerTrivia checks if the answer is correct.
@@ -250,6 +250,6 @@ func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string)
 			Options = append(Options, string('A'+i)+". "+api.QuizList[currentQuestionQ].Answers[i])
 		}
 	}
-	s.ChannelMessageSend(m.ChannelID, "```Q. "+api.QuizList[currentQuestionQ].Question+"\n"+strings.Join(Options, "\n")+"```")
+	s.ChannelMessageSend(m.ChannelID, "```Question "+strconv.Itoa(currentQuestionQ+1)+"\n\n"+api.QuizList[currentQuestionQ].Question+"\n\n"+strings.Join(Options, "\n")+"```")
 
 }
