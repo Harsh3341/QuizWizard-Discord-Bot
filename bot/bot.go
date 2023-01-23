@@ -242,10 +242,11 @@ func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string)
 		if strings.ToLower(answer) == strings.ToLower(api.QuizList[currentQuestionQ].Correct_Answers[i]) {
 
 			scoreQ++
-			s.ChannelMessageSend(m.ChannelID, "```Correct! Your score is "+strconv.Itoa(scoreQ)+"```")
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Correct!", "```Your score is "+strconv.Itoa(scoreQ)+"```", 0x00ff00))
 
 		} else {
-			s.ChannelMessageSend(m.ChannelID, "```Incorrect!, Correct answer is "+api.QuizList[currentQuestionQ].Correct_Answers[0]+"\nYour score is "+strconv.Itoa(scoreQ)+"```")
+
+			s.ChannelMessageSendEmbed(m.ChannelID, embed.NewGenericEmbedAdvanced("Incorrect!", "```Correct answer is "+api.QuizList[currentQuestionQ].Correct_Answers[i]+"\nYour score is "+strconv.Itoa(scoreQ)+"```", 0xb40000))
 		}
 	}
 
@@ -257,8 +258,6 @@ func answerQuiz(s *discordgo.Session, m *discordgo.MessageCreate, answer string)
 	}
 
 	var Options []string
-
-	fmt.Println(len(api.QuizList[currentQuestionQ].Answers))
 
 	for i := 0; i < len(api.QuizList[currentQuestionQ].Answers); i++ {
 		if api.QuizList[currentQuestionQ].Answers[i] != "" {
