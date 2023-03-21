@@ -1,0 +1,4 @@
+# QuizWizard-Discord-Bot![screencapture-discord-channels-1056809176711561248-1056951561621868594-2022-12-26-20_41_40](https://user-images.githubusercontent.com/101264150/226669131-85341521-fff2-4504-b97a-f2938890c57f.png)
+![screencapture-discord-channels-1056809176711561248-1056951561621868594-2022-12-26-20_58_49](https://user-images.githubusercontent.com/101264150/226669173-6489b554-c459-465b-a6d3-008a21779812.png)
+![screencapture-discord-channels-1056809176711561248-1056951561621868594-2022-12-26-21_01_25](https://user-images.githubusercontent.com/101264150/226669189-b24216ad-2aed-420a-b74a-e38b63d72541.png)
+![screencapture-discord-channels-1056809176711561248-1056951561621868594-2022-12-26-21_03_05](https://user-images.githubusercontent.com/101264150/226669200-a8707f9c-eb9d-4df8-b878-1be304a04d0b.png)
